@@ -1,0 +1,37 @@
+Steps for SpringBatchProject
+
+-----------Loading Dummy Data Into Source DB--------------------
+
+Step1: Create tables in both Sql and PGSQL DB 
+	-> Creating in Source -- DONE
+	-> Creating in Target -- DONE
+
+Step2: Populate Random data into Source"
+	-> Create Entity and Dto classes - DONE
+	-> Entity table mapping - DONE
+	-> Create Primary key in both tables (Source -> SE_NO, SRCE_SYS_ID, BUS_CTR_CD, ACCT_TYPE_CD) - DONE
+					     (Target -> mer_id, ain_no, settle_acct_type_cd)	- DONE
+
+Step 3: Create Service method to generate random data and save, and find all Data related to Ssid: Interface ready -> DONE
+												   Implementation -> PENDING
+
+Step 4: Create util functions which will generate random data -> 
+	-> SE_NO Randomly generate String of length 10 made up of only numbers                    --DONE
+    	-> CR/DR_BANK_ACCT_SWIFT_NO Randomly generate String of length 11 made up of only numbers --DONE
+    	-> CR/DR_BANK_ACCT_NO Randomly generate String of  length 15 made up of numbers           --DONE
+    	-> TRS_FSI_ACCT_NO,TRS_FSI_REFER_NO Randomly generate String of length 10 made up of numbers --DONE
+    	-> SRCE_SYS_ID, BUS_CTR_CD, ACCT_TYPE_CD Will take randomly values out of some 3 character values from an array --DONE
+    	-> CR/DR_BANK_ACCT_CD Randomly generate String of length 7 made up of characters    --DONE
+    	-> BANK_ACCT_NM       Randomly generate String of length 30 made up of characters   --DONE
+    	-> PAYEE_NM  Randomly generate String of length 25 made up of characters            --DONE
+    	-> STRT_DT, END_DT Generate Random date in YYYY-MM-DD format then convert it to String --DONE
+    	-> MIN_SETTLE_AM Randomly generate long of 15 digits   --DONE
+    	-> AGR_DAY_TO_PAY Randomly generate int between 01 and 60 --DONE
+    	-> REC_CREAT_TS, LST_UPDT_ODS_TS Randomly generate DateTimeStamp of format 'yyyy-MM-dd hh:mm:ss.SSSSSS' of length 25 made up of characters --DONE
+
+Step 5: Establish database connection using JDBC or Spring Data -> PENDING
+
+Step 6: Load Data Into DB in Asynchronus manner (In Batches and Chunk Sizes)-> PENDING
+
+
+----------------Loading Data from source to target DB using Spring Batch-----------------
