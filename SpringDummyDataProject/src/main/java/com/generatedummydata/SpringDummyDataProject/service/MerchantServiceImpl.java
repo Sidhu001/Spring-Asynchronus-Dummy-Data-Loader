@@ -7,7 +7,6 @@ import static com.generatedummydata.SpringDummyDataProject.utils.RandomDataGener
 import com.generatedummydata.SpringDummyDataProject.entity.Merchant;
 import com.generatedummydata.SpringDummyDataProject.entity.MerchantPrimaryKey;
 import com.generatedummydata.SpringDummyDataProject.repository.MerchantRepository;
-import com.generatedummydata.SpringDummyDataProject.utils.RandomDataGenerator;
 
 import com.google.gson.*;
 import org.apache.logging.log4j.LogManager;
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -36,7 +34,7 @@ public class MerchantServiceImpl implements MerchantService {
 
     @Override
     @Async
-    public CompletableFuture<Map<String, Integer>> saveDummyMerchantData(int chunkSize, int batchSize, int noOfDummyDataRequired) throws Exception {
+    public CompletableFuture<Map<String, Integer>> saveDummyMerchantDataInBatches(int chunkSize, int batchSize, int noOfDummyDataRequired) throws Exception {
         AtomicInteger noOfDataPersisted = new AtomicInteger();
         Map<String, Integer> jobSummary = new HashMap<>();
         int noOfEventsNeeded = noOfDummyDataRequired / (chunkSize * batchSize);

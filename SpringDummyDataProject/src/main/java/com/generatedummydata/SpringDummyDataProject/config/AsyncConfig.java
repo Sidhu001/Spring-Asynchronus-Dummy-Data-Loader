@@ -27,5 +27,4 @@ public class AsyncConfig {
         taskExecutor.initialize();
         return taskExecutor;
     }
-
 }

@@ -2,8 +2,6 @@ package com.generatedummydata.SpringDummyDataProject.controller;
 
 import com.generatedummydata.SpringDummyDataProject.entity.Merchant;
 import com.generatedummydata.SpringDummyDataProject.service.MerchantService;
-import com.generatedummydata.SpringDummyDataProject.utils.JobSummary;
-import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +27,7 @@ public class MerchantController {
     public ResponseEntity<Map<String, Integer>> saveAllMerchants(@PathVariable int chunkSize,
                                                        @PathVariable int batchSize,
                                                        @PathVariable int noOfDummyDataRequired) throws Exception {
-        Map<String, Integer> jobSummary = merchantService.saveDummyMerchantData(chunkSize, batchSize, noOfDummyDataRequired).get();
+        Map<String, Integer> jobSummary = merchantService.saveDummyMerchantDataInBatches(chunkSize, batchSize, noOfDummyDataRequired).get();
         return new ResponseEntity<>(jobSummary, HttpStatus.OK);
     }
 
