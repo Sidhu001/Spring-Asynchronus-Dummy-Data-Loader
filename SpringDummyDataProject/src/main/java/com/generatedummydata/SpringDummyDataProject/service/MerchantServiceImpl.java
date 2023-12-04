@@ -12,6 +12,7 @@ import com.google.gson.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -38,23 +39,41 @@ public class MerchantServiceImpl implements MerchantService {
         AtomicInteger noOfDataPersisted = new AtomicInteger();
         Map<String, Integer> jobSummary = new HashMap<>();
         int noOfEventsNeeded = noOfDummyDataRequired / (chunkSize * batchSize);
-        List<CompletableFuture<List<Merchant>>> eventFuturesList = new ArrayList<>();
+        List<CompletableFuture<List<Merchant>>> generateDummyDataEventFutures = new ArrayList<>();
 
         for (int i = 0; i < noOfEventsNeeded; i++) {
             CompletableFuture<List<Merchant>>  eventFuture = generateDummyMerchantChunk(batchSize, chunkSize);
-            eventFuturesList.add(eventFuture);
+            generateDummyDataEventFutures.add(eventFuture);
         }
 
-        logger.info("Event Futures List {}", eventFuturesList.size());
+        logger.info("Dummy data generation event futures list {}", generateDummyDataEventFutures.size());
+
+        /*      Below causes the job tu run in single thread only So below code is not correct
         AtomicInteger i = new AtomicInteger();
-        for(CompletableFuture<List<Merchant>> event : eventFuturesList){
+        for(CompletableFuture<List<Merchant>> event : generateDummyDataEventFutures){
             if(event.get() != null){
                 Integer noOfDataStored = merchantRepository.saveAll(event.get()).size();
                 jobSummary.put("event " + i + " stored", noOfDataStored );
                 noOfDataPersisted.getAndAdd(event.get().size());
                 i.incrementAndGet();
             }
-        }
+        }*/
+
+        // Job working on single thread fix
+        AtomicInteger i = new AtomicInteger();
+        generateDummyDataEventFutures.parallelStream().forEach(
+                dummyDataFuture ->
+                {
+                    try {
+                        int noOfDataStored = merchantRepository.saveAll(dummyDataFuture.get()).size();
+                        jobSummary.put("event " + i + " stored", noOfDataStored );
+                        noOfDataPersisted.getAndAdd(noOfDataStored);
+                        i.incrementAndGet();
+                    } catch (InterruptedException | ExecutionException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+        );
 
         Integer totalDataPersisted = noOfDataPersisted.intValue();
         jobSummary.put("TOTAL_DATA_STORED", totalDataPersisted);
@@ -100,8 +119,16 @@ public class MerchantServiceImpl implements MerchantService {
     }
 
     @Override
-    public CompletableFuture<JsonArray> findAllMerchantWithSsid(String ssid) throws Exception {
-        return null;
+    @Async
+    public CompletableFuture<List<Merchant>> findAllMerchantWithSsid(String ssid) throws Exception {
+        List<Merchant> merchants = CompletableFuture.supplyAsync(() -> {
+            try {
+                return merchantRepository.findBySrcSysId(ssid);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).get();
+        return CompletableFuture.completedFuture(merchants);
     }
 
     @Async

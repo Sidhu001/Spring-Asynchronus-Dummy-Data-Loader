@@ -7,7 +7,6 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-
 import java.util.concurrent.Executor;
 
 @SpringBootConfiguration
@@ -16,15 +15,17 @@ public class AsyncConfig {
 
     public static final Logger logger = LogManager.getLogger(MerchantServiceImpl.class);
 
-    @Bean(name = "taskExecutor")
+    @Bean
     public Executor taskExecutor(){
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(2);
-        taskExecutor.setMaxPoolSize(4);
-        taskExecutor.setQueueCapacity(100);
+        taskExecutor.setCorePoolSize(20);
+        taskExecutor.setMaxPoolSize(100);
+        taskExecutor.setQueueCapacity(200);
+
         taskExecutor.setThreadNamePrefix("userThread-");
         taskExecutor.setRejectedExecutionHandler((r, executor1) -> logger.warn("Task rejected, thread pool is full and queue is also full"));
         taskExecutor.initialize();
         return taskExecutor;
     }
+
 }

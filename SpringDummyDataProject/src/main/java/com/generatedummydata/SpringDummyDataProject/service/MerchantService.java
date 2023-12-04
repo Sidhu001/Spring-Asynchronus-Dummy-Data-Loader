@@ -13,6 +13,6 @@ public interface MerchantService {
     public  CompletableFuture<Map<String, Integer>> saveDummyMerchantDataInBatches(int chunkSize, int noOfParallelBatch, int noOfDummyDataRequired) throws Exception;
     public List<Merchant> saveMerchant(int noOfMerchant) throws Exception;
 
-    public CompletableFuture<JsonArray>  findAllMerchantWithSsid(String ssid) throws Exception;
+    public CompletableFuture<List<Merchant>>  findAllMerchantWithSsid(String ssid) throws Exception;
 
 }
