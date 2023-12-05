@@ -28,9 +28,15 @@ public class RandomDataGenerator {
 
     private static String[] bcc = {"016", "072", "060", "027", "037"};
     private static String[] acctTpCd = {"002", "004", "006", "008", "010"};
-    public static String generateRandomNumber(int noOfDigits) {
-        Random random = new Random();
-        return String.valueOf(abs(random.nextLong())).substring(0,noOfDigits);
+    public static String generateRandomNumber(int noOfDigits) throws StringIndexOutOfBoundsException {
+        String num = "";
+        try {
+            Random random = new Random();
+            num = String.valueOf(abs(random.nextLong())).substring(0, noOfDigits);
+        } catch (StringIndexOutOfBoundsException ex) {
+            logger.info("Index out of bound exception occured");
+        }
+        return num;
     }
 
     public static String generateRandomThreeCharacterStringsFromGivenArray(String fieldName){
