@@ -13,13 +13,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.PreparedStatement;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,23 +29,26 @@ public class MerchantServiceImpl implements MerchantService {
 
     @Autowired
     private MerchantRepository merchantRepository;
-
+    @Autowired
+    private JdbcTemplate jdbctemplate;
     public static final Logger logger = LogManager.getLogger(MerchantServiceImpl.class);
 
     @Override
     @Async
     public CompletableFuture<Map<String, Integer>> saveDummyMerchantDataInBatches(int chunkSize, int batchSize, int noOfDummyDataRequired) throws Exception {
-        AtomicInteger noOfDataPersisted = new AtomicInteger();
         Map<String, Integer> jobSummary = new HashMap<>();
         int noOfEventsNeeded = noOfDummyDataRequired / (chunkSize * batchSize);
         List<CompletableFuture<List<Merchant>>> generateDummyDataEventFutures = new ArrayList<>();
 
+        long dummyDataGenerationStart = System.currentTimeMillis();
         for (int i = 0; i < noOfEventsNeeded; i++) {
             CompletableFuture<List<Merchant>>  eventFuture = generateDummyMerchantChunk(batchSize, chunkSize);
             generateDummyDataEventFutures.add(eventFuture);
         }
+        long dummyDataGenerationEnd = System.currentTimeMillis();
 
-        logger.info("Dummy data generation event futures list {}", generateDummyDataEventFutures.size());
+        logger.info("Dummy data generation event futures list {} ", generateDummyDataEventFutures.size());
+        logger.info("Total time taken to generate dummy data {}", dummyDataGenerationEnd - dummyDataGenerationStart);
 
         /*      Below causes the job tu run in single thread only So below code is not correct
         AtomicInteger i = new AtomicInteger();
@@ -59,7 +61,94 @@ public class MerchantServiceImpl implements MerchantService {
             }
         }*/
 
-        // Job working on single thread fix
+        List<List<Merchant>> dummyMerchantListFromAllParallelBatches ;
+        dummyMerchantListFromAllParallelBatches = generateDummyDataEventFutures.stream().map(CompletableFuture::join).collect(Collectors.toList());
+        List<Merchant> allDummyMerchantsTOBeStored = dummyMerchantListFromAllParallelBatches.parallelStream().flatMap(List::stream).toList();
+        long startDbPersistence = System.currentTimeMillis();
+
+        //@JDBC Batch query support
+        String merchantBankInsertQuery = "insert into merchant_bank (agr_day_to_pay,bank_acct_nm,cr_bank_acct_cd,cr_bank_acct_no," +
+                "cr_bank_acct_swift_no,dr_bank_acct_cd,dr_bank_acct_no,dr_bank_acct_swift_no,end_dt,lst_updt_ods_ts,min_settle_am,payee_nm,rec_creat_ts," +
+                "strt_dt,trs_fsi_acct_no,trs_fsi_refer_no,acct_type_cd,bus_ctr_cd,se_no,srce_sys_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+        //Non Asynchronous batch call
+        /*jdbctemplate.batchUpdate(merchantBankInsertQuery,
+                allDummyMerchantsTOBeStored,
+                100,
+                (PreparedStatement ps, Merchant merchant) -> {
+                    ps.setInt(1, merchant.getAgrDayToPay());
+                    ps.setString(2, merchant.getBankAcctNm());
+                    ps.setString(3, merchant.getCrBankAcctCd());
+                    ps.setString(4, merchant.getCrBankAcctNo());
+                    ps.setString(5, merchant.getCrBankAcctSwiftNo());
+                    ps.setString(6, merchant.getDrBankAcctCd());
+                    ps.setString(7, merchant.getDrBankAcctNo());
+                    ps.setString(8, merchant.getDrBankAcctSwiftNo());
+                    ps.setString(9, merchant.getEndDt());
+                    ps.setString(10, merchant.getLstUpdateTs());
+                    ps.setLong(11, merchant.getMinSettleAm());
+                    ps.setString(12, merchant.getPayeeName());
+                    ps.setString(13, merchant.getRecCreateTs());
+                    ps.setString(14, merchant.getStartDt());
+                    ps.setString(15, merchant.getTrsFsiAcctNo());
+                    ps.setString(16, merchant.getTrsFsiReferNo());
+                    ps.setString(17, merchant.getAcctTypeCd());
+                    ps.setString(18, merchant.getBusCtrCd());
+                    ps.setString(19, merchant.getSeNumber());
+                    ps.setString(20, merchant.getSrcSysId());
+                });*/
+
+        // Asynchronous call to jdbc batchUpdate method
+        AtomicInteger noOfDataPersisted = new AtomicInteger();
+        generateDummyDataEventFutures.parallelStream().forEach(
+                dummyDataFuture ->
+                {
+                    try {
+                        int noOfDataStored = dummyDataFuture.get().size();
+                        jdbctemplate.batchUpdate(merchantBankInsertQuery,
+                                dummyDataFuture.get(),
+                                100,
+                                (PreparedStatement ps, Merchant merchant) -> {
+                                    ps.setInt(1, merchant.getAgrDayToPay());
+                                    ps.setString(2, merchant.getBankAcctNm());
+                                    ps.setString(3, merchant.getCrBankAcctCd());
+                                    ps.setString(4, merchant.getCrBankAcctNo());
+                                    ps.setString(5, merchant.getCrBankAcctSwiftNo());
+                                    ps.setString(6, merchant.getDrBankAcctCd());
+                                    ps.setString(7, merchant.getDrBankAcctNo());
+                                    ps.setString(8, merchant.getDrBankAcctSwiftNo());
+                                    ps.setString(9, merchant.getEndDt());
+                                    ps.setString(10, merchant.getLstUpdateTs());
+                                    ps.setLong(11, merchant.getMinSettleAm());
+                                    ps.setString(12, merchant.getPayeeName());
+                                    ps.setString(13, merchant.getRecCreateTs());
+                                    ps.setString(14, merchant.getStartDt());
+                                    ps.setString(15, merchant.getTrsFsiAcctNo());
+                                    ps.setString(16, merchant.getTrsFsiReferNo());
+                                    ps.setString(17, merchant.getAcctTypeCd());
+                                    ps.setString(18, merchant.getBusCtrCd());
+                                    ps.setString(19, merchant.getSeNumber());
+                                    ps.setString(20, merchant.getSrcSysId());
+                                });
+                        noOfDataPersisted.getAndAdd(noOfDataStored);
+                    } catch (InterruptedException | ExecutionException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+        );
+
+
+        int noOfDataStored = allDummyMerchantsTOBeStored.size();
+        long endDbPersistence = System.currentTimeMillis();
+        logger.info("Total time taken to store records {}, : {}", noOfDataStored, endDbPersistence - startDbPersistence);
+
+        jobSummary.put("TOTAL_DATA_STORED", noOfDataStored);
+        logger.info("Job Summary {}", jobSummary.toString());
+        return CompletableFuture.completedFuture(jobSummary);
+
+        // TODO: JPA saveALl() method not inserting in batches even after enabling it in property (Maybe because we are not using any
+        //            identifier strategy) need to check later unable to find fix in online
+        /*
         AtomicInteger i = new AtomicInteger();
         generateDummyDataEventFutures.parallelStream().forEach(
                 dummyDataFuture ->
@@ -79,6 +168,8 @@ public class MerchantServiceImpl implements MerchantService {
         jobSummary.put("TOTAL_DATA_STORED", totalDataPersisted);
         logger.info("Job Summary {}", jobSummary.toString());
         return CompletableFuture.completedFuture(jobSummary);
+    */
+
     }
 
     @Override
