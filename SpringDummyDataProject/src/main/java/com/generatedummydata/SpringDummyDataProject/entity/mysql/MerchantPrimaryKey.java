@@ -1,4 +1,4 @@
-package com.generatedummydata.SpringDummyDataProject.entity;
+package com.generatedummydata.SpringDummyDataProject.entity.mysql;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
