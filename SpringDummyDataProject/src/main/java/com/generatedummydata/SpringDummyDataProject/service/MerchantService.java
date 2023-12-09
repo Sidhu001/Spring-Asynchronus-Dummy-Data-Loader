@@ -1,7 +1,7 @@
 package com.generatedummydata.SpringDummyDataProject.service;
 
 
-import com.generatedummydata.SpringDummyDataProject.entity.Merchant;
+import com.generatedummydata.SpringDummyDataProject.entity.mysql.*;
 import com.google.gson.JsonArray;
 
 import java.util.List;

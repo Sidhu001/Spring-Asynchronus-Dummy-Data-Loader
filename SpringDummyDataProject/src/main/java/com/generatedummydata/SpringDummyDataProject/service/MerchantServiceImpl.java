@@ -4,15 +4,13 @@ import static com.generatedummydata.SpringDummyDataProject.constants.TableConsta
 import static com.generatedummydata.SpringDummyDataProject.utils.RandomDataGenerator.*;
 import static com.generatedummydata.SpringDummyDataProject.utils.RandomDataGenerator.generateRandomStringOfRequiredLength;
 
-import com.generatedummydata.SpringDummyDataProject.entity.Merchant;
-import com.generatedummydata.SpringDummyDataProject.entity.MerchantPrimaryKey;
-import com.generatedummydata.SpringDummyDataProject.repository.MerchantRepository;
+import com.generatedummydata.SpringDummyDataProject.entity.mysql.*;
 
-import com.google.gson.*;
+import com.generatedummydata.SpringDummyDataProject.repository.sqlrepo.MerchantRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.task.TaskExecutor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -30,7 +28,10 @@ public class MerchantServiceImpl implements MerchantService {
     @Autowired
     private MerchantRepository merchantRepository;
     @Autowired
-    private JdbcTemplate jdbctemplate;
+    private JdbcTemplate mysqlJdbctemplate;
+    @Autowired
+    @Qualifier("postgresJdbcTemplate")
+    private JdbcTemplate postgresJdbcTemplate;
     public static final Logger logger = LogManager.getLogger(MerchantServiceImpl.class);
 
     @Override
@@ -105,7 +106,7 @@ public class MerchantServiceImpl implements MerchantService {
                 {
                     try {
                         int noOfDataStored = dummyDataFuture.get().size();
-                        jdbctemplate.batchUpdate(merchantBankInsertQuery,
+                        mysqlJdbctemplate.batchUpdate(merchantBankInsertQuery,
                                 dummyDataFuture.get(),
                                 100,
                                 (PreparedStatement ps, Merchant merchant) -> {

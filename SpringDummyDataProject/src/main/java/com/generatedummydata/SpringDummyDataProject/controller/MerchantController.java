@@ -1,6 +1,6 @@
 package com.generatedummydata.SpringDummyDataProject.controller;
 
-import com.generatedummydata.SpringDummyDataProject.entity.Merchant;
+import com.generatedummydata.SpringDummyDataProject.entity.mysql.Merchant;
 import com.generatedummydata.SpringDummyDataProject.service.MerchantService;
 import com.generatedummydata.SpringDummyDataProject.service.MerchantServiceImpl;
 import com.google.gson.JsonArray;
