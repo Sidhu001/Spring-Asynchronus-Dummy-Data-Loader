@@ -44,12 +44,12 @@ public class MerchantController {
 
     //For getting all data belonging to a particular Ssid
     @GetMapping(value = "/getAllMerchants/{ssid}" , produces = "application/json")
-    public ResponseEntity<List<Merchant>> getAllMerchants(@PathVariable String ssid) throws Exception {
+    public ResponseEntity<Integer> getAllMerchantsSize(@PathVariable String ssid) throws Exception {
         long start = System.currentTimeMillis();
         List<Merchant> merchants = merchantService.findAllMerchantWithSsid(ssid).get();
         long end = System.currentTimeMillis();
         logger.info("Fetching data with ssid {} took {}",ssid ,end-start);
-        return new ResponseEntity<>(merchants, HttpStatus.OK);
+        return new ResponseEntity<>(merchants.size(), HttpStatus.OK);
     }
 
 }
