@@ -1,24 +1,15 @@
 package com.generatedummydata.SpringDummyDataProject.service;
 
-import com.generatedummydata.SpringDummyDataProject.entity.mysql.Merchant;
 import com.generatedummydata.SpringDummyDataProject.entity.postgres.MerchantBankPostgres;
-import com.generatedummydata.SpringDummyDataProject.entity.postgres.MerchantBankPostgresPrimaryKey;
 import com.generatedummydata.SpringDummyDataProject.repository.postgresrepo.MerchantPostgresRepository;
-import com.generatedummydata.SpringDummyDataProject.utils.RandomDataGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
-import static com.generatedummydata.SpringDummyDataProject.constants.TableConstants.*;
-import static com.generatedummydata.SpringDummyDataProject.utils.RandomDataGenerator.*;
-import static com.generatedummydata.SpringDummyDataProject.utils.RandomDataGenerator.generateRandomDateTimeStamp;
 
 @Service("merchantServicePostgresImpl")
 public class MerchantServicePostgresImpl implements MerchantServicePostgres {
