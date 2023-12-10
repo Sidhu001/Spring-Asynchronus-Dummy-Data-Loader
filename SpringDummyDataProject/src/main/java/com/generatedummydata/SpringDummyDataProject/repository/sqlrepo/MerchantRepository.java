@@ -1,6 +1,7 @@
 package com.generatedummydata.SpringDummyDataProject.repository.sqlrepo;
 
 import com.generatedummydata.SpringDummyDataProject.entity.mysql.*;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
