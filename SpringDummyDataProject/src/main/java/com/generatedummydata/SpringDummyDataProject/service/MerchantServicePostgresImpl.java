@@ -62,6 +62,7 @@ public class MerchantServicePostgresImpl implements MerchantServicePostgres {
     public Map<String, Integer> saveAllMerchantsToDb(String ssId, int chunkSize, int batchUpsertSize, int noOfParallelBatchInserts) throws Exception {
         Map<String, Integer> jobSummary = new HashMap<>();
         List<Merchant> merchants = fetchMerchants(ssId);
+        logger.info("WTVR");
         logger.info("Fetched all the merchants size: {}", merchants.size());
         String query = "insert into merchant_bank (agr_day_to_pay,bank_acct_nm,cr_bank_acct_cd,cr_bank_acct_no,cr_bank_acct_swift_no,dr_bank_acct_cd,dr_bank_acct_no,dr_bank_acct_swift_no,end_dt,lst_updt_ts,min_settle_am,payee_nm,rec_creat_ts,strt_dt,trs_fsi_acct_no,trs_fsi_refer_no,ain_no,bus_ctr_cd,mer_id,settle_acct_type_cd,srce_sys_id) values (?,?,?,?,?,?,?,?,TO_DATE(?,'YYYYMMDD'),to_timestamp(?,'YYYY-MM-DD'),?,?,to_timestamp(?,'YYYY-MM-DD'),TO_DATE(?,'YYYYMMDD'),?,?,?,?,?,?,?)";
 
